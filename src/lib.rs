@@ -1,17 +1,48 @@
 // Config parses CLI arguments
 // Expects a path to a Facebook zip file containing JSON
 pub struct Config {
-  pub filename: String,
+  pub facebook_zip: String,
+  pub solid_profile_card: String,
 }
 
 impl Config {
   pub fn new(args: &[String]) -> Result<Config, &'static str> {
-    if args.len() < 2 {
-      return Err("Need a path to a Facebook zip!");
+    if args.len() < 3 {
+      return Err("Need a path to a Facebook zip! and a URL to a SOLID profile card");
     }
-    let filename = args[1].clone();
+    let facebook_zip = args[1].clone();
+    let solid_profile_card = args[2].clone();
 
-    Ok(Config { filename })
+    Ok(Config { facebook_zip, solid_profile_card })
+  }
+}
+
+pub mod solidgraph {
+  use rdf::graph::Graph;
+  use rdf::uri::Uri;
+  use rdf::triple::Triple;
+  use std::fs::File;
+  use std::io::prelude::*;
+  use rdf::reader::turtle_parser::TurtleParser;
+  use rdf::reader::rdf_parser::RdfParser;
+
+  // Used to open an existing .ttl profile to append new data. Parser seems to choke on SOLID's default profile
+  pub fn open_solid_card(path: &str) {
+    let mut file = File::open(path).unwrap_or_else(|err| panic!("Problem opening the file: {:?}", err));
+      let mut solid_profile_card = String::new();
+      file.read_to_string(&mut solid_profile_card);
+      println!("Got a card? {:#?}", solid_profile_card);
+      println!();
+      
+      let mut reader = TurtleParser::from_string(solid_profile_card.to_string());
+      
+      match reader.decode(){
+        Ok(graph)=> {
+          println!("{:#?}", graph);
+        },
+        Err(err) => println!("{}", err),
+      }
+
   }
 }
 
@@ -22,7 +53,7 @@ pub mod facebook {
   use std::io::prelude::Read;
 
   #[derive(Deserialize)]
-  pub struct ProfileInformation {
+  pub struct FBProfileInformation {
     pub profile: Profile,
   }
 
@@ -55,16 +86,18 @@ pub mod facebook {
     pub profile_uri: String, // Is there a URL type?
     pub intro_bio: String,
   }
-  impl ProfileInformation {
-    pub fn new(zip_path: &str) -> Result<ProfileInformation, io::Error> {
+  impl FBProfileInformation {
+    pub fn new(zip_path: &str) -> Result<FBProfileInformation, io::Error> {
       let file =
         File::open(zip_path).unwrap_or_else(|err| panic!("Problem opening the file: {:?}", err));
 
       let mut zip = zip::ZipArchive::new(file)?;
       println!("Got a zip with {} files", zip.len());
 
+      // The path seems to be able to be either facebook-bushidocodes/profile_information/profile_information.json
+      // or profile_information/profile_information.json
       let mut file =
-        zip.by_name("facebook-bushidocodes/profile_information/profile_information.json")?;
+        zip.by_name("profile_information/profile_information.json")?;
       println!("Got file in zip");
 
       let mut contents = String::new();
@@ -72,7 +105,7 @@ pub mod facebook {
         .read_to_string(&mut contents)
         .expect("Failed to read file to string");
 
-      let p: ProfileInformation = serde_json::from_str(&contents).expect("error parsing JSON!");
+      let p: FBProfileInformation = serde_json::from_str(&contents).expect("error parsing JSON!");
       Ok(p)
     }
   }
