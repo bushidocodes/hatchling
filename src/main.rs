@@ -1,16 +1,15 @@
 use std::env;
 use std::process;
 
-use solidprofileimporter::facebook::FBProfileInformation;
-use solidprofileimporter::solidgraph::open_solid_card;
+use solidprofileimporter::facebook::{FBProfileInformation, FBFriends};
 use solidprofileimporter::Config;
+use solidprofileimporter::solidprofile::Profile;
 
 use rdf::writer::turtle_writer::TurtleWriter;
 use rdf::writer::rdf_writer::RdfWriter;
-use rdf::graph::Graph;
-use rdf::uri::Uri;
-use rdf::triple::Triple;
-use rdf::namespace::Namespace;
+
+use std::io::prelude::*;
+use std::fs::File;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -25,91 +24,77 @@ fn main() {
         process::exit(1)
     });
 
-    println!("Got a name? {}", &my_fb_profile.profile.name.full_name);
+    // let my_fb_friends = FBFriends::new(&config.friends_json).unwrap_or_else(|err| {
+    //     eprintln!("Problem Parsing friends json: {}", err);
+    //     process::exit(1)
+    // });
 
-
-    // open_solid_card(&config.solid_profile_card);
-
-
-    let mut graph = Graph::new(None);
-
-    // Add Namespaces
-    graph.add_namespace(&Namespace::new("".to_string(), Uri::new("#".to_string())));
-
-
-    graph.add_namespace(&Namespace::new("profile".to_string(), Uri::new("./".to_string())));
-        
-    graph.add_namespace(&Namespace::new("schema".to_string(), Uri::new("http://schema.org/".to_string())));
-    graph.add_namespace(&Namespace::new("foaf".to_string(), Uri::new("http://xmlns.com/foaf/0.1/".to_string())));
-    graph.add_namespace(&Namespace::new("vcard".to_string(), Uri::new("http://www.w3.org/2006/vcard/ns".to_string())));
-
-    // Add foaf Metadata
-    let subject = graph.create_uri_node(&Uri::new(":card".to_string()));
-    let predicate = graph.create_uri_node(&Uri::new("a".to_string()));
-    let object = graph.create_uri_node(&Uri::new("foaf:PersonalProfileDocument".to_string()));
-    let triple = Triple::new(&subject, &predicate, &object);
-    graph.add_triple(&triple);
-
-    let predicate = graph.create_uri_node(&Uri::new("foaf:maker".to_string()));
-    let object = graph.create_uri_node(&Uri::new(":me".to_string()));
-    let triple = Triple::new(&subject, &predicate, &object);
-    graph.add_triple(&triple);
-
-    let predicate = graph.create_uri_node(&Uri::new("foaf:primaryTopic".to_string()));
-    let object = graph.create_uri_node(&Uri::new(":me".to_string()));
-    let triple = Triple::new(&subject, &predicate, &object);
-    graph.add_triple(&triple);
-    
-    
-    
-    // Create Me
-    let subject = graph.create_uri_node(&Uri::new(":me".to_string()));
-    let predicate = graph.create_uri_node(&Uri::new("a".to_string()));
-    let object = graph.create_uri_node(&Uri::new("schema:Person".to_string()));
-    let triple = Triple::new(&subject, &predicate, &object);
-    graph.add_triple(&triple);
-
-    let subject = graph.create_uri_node(&Uri::new(":me".to_string()));
-    let predicate = graph.create_uri_node(&Uri::new("a".to_string()));
-    let object = graph.create_uri_node(&Uri::new("foaf:Person".to_string()));
-    let triple = Triple::new(&subject, &predicate, &object);
-    graph.add_triple(&triple);
-
+    let mut profile = Profile::new();
 
     // foaf familyName / lastName
-    let predicate = graph.create_uri_node(&Uri::new("foaf:familyName".to_string()));
-    let object = graph.create_literal_node(my_fb_profile.profile.name.last_name.clone());
-    let triple = Triple::new(&subject, &predicate, &object);
-    graph.add_triple(&triple);
-    let predicate = graph.create_uri_node(&Uri::new("foaf:lastName".to_string()));
-    let triple = Triple::new(&subject, &predicate, &object);
-    graph.add_triple(&triple);
+    if !my_fb_profile.profile.name.last_name.is_empty() {
+        profile.set_last_name(&my_fb_profile.profile.name.last_name);
+    }
 
     // foaf givenName / firstName     
-    let predicate = graph.create_uri_node(&Uri::new("foaf:givenName".to_string()));
-    let object = graph.create_literal_node(my_fb_profile.profile.name.first_name.clone());
-    let triple = Triple::new(&subject, &predicate, &object);
-    graph.add_triple(&triple);
-    let predicate = graph.create_uri_node(&Uri::new("foaf:firstName".to_string()));
-    let triple = Triple::new(&subject, &predicate, &object);
-    graph.add_triple(&triple);
+    if !my_fb_profile.profile.name.first_name.is_empty() {
+        profile.set_first_name(&my_fb_profile.profile.name.first_name);
+    }
 
     // foaf gender
-    let predicate = graph.create_uri_node(&Uri::new("foaf:gender".to_string()));
-    let object = graph.create_literal_node(my_fb_profile.profile.gender.gender_option);
-    let triple = Triple::new(&subject, &predicate, &object);
-    graph.add_triple(&triple);
+    if !my_fb_profile.profile.gender.gender_option.is_empty() {
+        profile.set_gender(&my_fb_profile.profile.gender.gender_option);
+    }
 
-    // foaf birthday
-    let predicate = graph.create_uri_node(&Uri::new("foaf:birhtday".to_string()));
-    let birthday = format!("{}-{}", &my_fb_profile.profile.birthday.month, &my_fb_profile.profile.birthday.day);
-    let object = graph.create_literal_node(birthday);
-    let triple = Triple::new(&subject, &predicate, &object);
-    graph.add_triple(&triple);
+    // foaf birthday and age - Calculations seems to not quite correct
+    if !my_fb_profile.profile.birthday.month > 0 && !my_fb_profile.profile.birthday.day > 0 && !my_fb_profile.profile.birthday.year > 0{
+        profile.set_birthday_and_age(
+            my_fb_profile.profile.birthday.month.into(), 
+            my_fb_profile.profile.birthday.day.into(), 
+            my_fb_profile.profile.birthday.year.into()
+        );
+    }
+
+    // foaf phone
+    for elem in my_fb_profile.profile.phone_numbers.iter() {
+        profile.add_phone_number(&elem.phone_number);
+    }
+
+    if !my_fb_profile.profile.username.is_empty() {
+        profile.add_facebook_username(&my_fb_profile.profile.username);
+    }
+
+  
 
 
+    // Add FB friends
+    
+    // for friend_raw in my_fb_friends.iter(){
+    //     let friend = graph.create_uri_node(&Uri::new(format!(":{}", friend_raw.name.replace(" ", "_"))));
 
-    let writer = TurtleWriter::new(&graph.namespaces());
-    println!("{}", writer.write_to_string(&graph).unwrap());
+    //     graph.add_triple(&Triple::new(&friend, &is_a, &foaf_person));
+
+    //     graph.add_triple(&Triple::new(&friend, &is_a, &foaf_person));
+
+    //     let words_in_name:  Vec<_> = friend_raw.name.split_whitespace().collect();
+    //     let first_name = words_in_name[0];
+    //     let last_name = words_in_name[words_in_name.len() -1];
+    //     let last_name = graph.create_literal_node(last_name.to_string());
+    //     let first_name = graph.create_literal_node(first_name.to_string());
+
+    //     graph.add_triple(&Triple::new(&friend, &foaf_last_name, &last_name));
+
+    //     graph.add_triple(&Triple::new(&friend, &foaf_first_name, &first_name));
+
+    //     graph.add_triple(&Triple::new(&me, &foaf_knows, &friend));
+    //     // friend fb account
+    //     let friend_fb = graph.create_uri_node(&Uri::new(format!(":{}_fb", friend_raw.name.replace(" ", "_"))));
+
+    // }
+
+    let writer = TurtleWriter::new(profile.graph.namespaces());
+    let results = writer.write_to_string(&profile.graph).unwrap();
+    let mut file = File::create("foo.txt").unwrap();
+    file.write_all(results.as_bytes()).unwrap();
 
 }

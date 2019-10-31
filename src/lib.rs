@@ -2,7 +2,7 @@
 // Expects a path to a Facebook zip file containing JSON
 pub struct Config {
   pub facebook_zip: String,
-  pub solid_profile_card: String,
+  pub friends_json: String,
 }
 
 impl Config {
@@ -11,37 +11,155 @@ impl Config {
       return Err("Need a path to a Facebook zip! and a URL to a SOLID profile card");
     }
     let facebook_zip = args[1].clone();
-    let solid_profile_card = args[2].clone();
+    let friends_json = args[2].clone();
 
-    Ok(Config { facebook_zip, solid_profile_card })
+    Ok(Config { facebook_zip, friends_json })
   }
 }
 
-pub mod solidgraph {
+pub mod solidprofile {
+  use chrono::prelude::*;
+  use chrono::{Utc};
   use rdf::graph::Graph;
   use rdf::uri::Uri;
   use rdf::triple::Triple;
-  use std::fs::File;
-  use std::io::prelude::*;
-  use rdf::reader::turtle_parser::TurtleParser;
-  use rdf::reader::rdf_parser::RdfParser;
+  use rdf::namespace::Namespace; 
 
-  // Used to open an existing .ttl profile to append new data. Parser seems to choke on SOLID's default profile
-  pub fn open_solid_card(path: &str) {
-    let mut file = File::open(path).unwrap_or_else(|err| panic!("Problem opening the file: {:?}", err));
-      let mut solid_profile_card = String::new();
-      file.read_to_string(&mut solid_profile_card);
-      println!("Got a card? {:#?}", solid_profile_card);
-      println!();
+  pub struct Profile {
+    pub graph: rdf::graph::Graph,
+  }
+
+  impl Profile  {
+    pub fn new() -> Profile  {
+      // Instantiate our RDF graph
+      let mut new_profile = Profile {
+        graph: Graph::new(None),
+      };
       
-      let mut reader = TurtleParser::from_string(solid_profile_card.to_string());
+      // Add Namespaces
+      new_profile.graph.add_namespace(&Namespace::new("".to_string(), Uri::new("#".to_string())));
+      new_profile.graph.add_namespace(&Namespace::new("profile".to_string(), Uri::new("./".to_string())));    
+      new_profile.graph.add_namespace(&Namespace::new("schema".to_string(), Uri::new("http://schema.org/".to_string())));
+      new_profile.graph.add_namespace(&Namespace::new("foaf".to_string(), Uri::new("http://xmlns.com/foaf/0.1/".to_string())));
+      new_profile.graph.add_namespace(&Namespace::new("vcard".to_string(), Uri::new("http://www.w3.org/2006/vcard/ns".to_string())));
+
+      // let foaf_knows = new_profile.graph.create_uri_node(&Uri::new("foaf:knows".to_string()));
+      // let foaf_last_name = new_profile.graph.create_uri_node(&Uri::new("foaf:lastName".to_string()));
+      let foaf_maker = new_profile.graph.create_uri_node(&Uri::new("foaf:maker".to_string()));
       
-      match reader.decode(){
-        Ok(graph)=> {
-          println!("{:#?}", graph);
-        },
-        Err(err) => println!("{}", err),
-      }
+      let foaf_person = new_profile.graph.create_uri_node(&Uri::new("foaf:Person".to_string()));
+      let foaf_personal_profile_document = new_profile.graph.create_uri_node(&Uri::new("foaf:PersonalProfileDocument".to_string()));
+      let foaf_primary_topic = new_profile.graph.create_uri_node(&Uri::new("foaf:primaryTopic".to_string()));
+
+      let schema_person = new_profile.graph.create_uri_node(&Uri::new("schema:Person".to_string()));
+
+      // Decorate with foaf schema nodes
+      let solid_card = new_profile.graph.create_uri_node(&Uri::new(":card".to_string()));
+      let me = new_profile.graph.create_uri_node(&Uri::new(":me".to_string()));
+      let is_a = new_profile.graph.create_uri_node(&Uri::new("a".to_string()));
+
+      
+      // This is a foaf personal profile I made for myself
+      new_profile.graph.add_triple(&Triple::new(&solid_card, &is_a, &foaf_personal_profile_document));
+      new_profile.graph.add_triple(&Triple::new(&solid_card, &foaf_maker, &me));
+      new_profile.graph.add_triple(&Triple::new(&solid_card, &foaf_primary_topic, &me));
+        
+      // Create Me
+      new_profile.graph.add_triple(&Triple::new(&me, &is_a, &schema_person));  // I'm a Schema.org Person
+      new_profile.graph.add_triple(&Triple::new(&me, &is_a, &foaf_person));    // and a foaf Person
+
+      
+      // And return
+      new_profile
+    }
+
+    // Note, this would set multiple conflicting triples if executed multiple times
+    pub fn set_last_name(&mut self, lastname: &str){
+      self.graph.add_triple(&Triple::new(
+        &self.graph.create_uri_node(&Uri::new(":me".to_string())),
+        &self.graph.create_uri_node(&Uri::new("foaf:lastName".to_string())), 
+        &self.graph.create_literal_node(lastname.to_string())
+      ));
+    }
+
+    // Note, this would set multiple conflicting triples if executed multiple times
+    pub fn set_first_name(&mut self, firstname: &str){
+      self.graph.add_triple(&Triple::new(
+        &self.graph.create_uri_node(&Uri::new(":me".to_string())), 
+        &self.graph.create_uri_node(&Uri::new("foaf:firstName".to_string())), 
+        &self.graph.create_literal_node(firstname.to_string())
+      ));
+    }
+
+    // Note, this would set multiple conflicting triples if executed multiple times
+    pub fn set_gender(&mut self, gender: &str){
+      self.graph.add_triple(&Triple::new(
+        &self.graph.create_uri_node(&Uri::new(":me".to_string())), 
+        &self.graph.create_uri_node(&Uri::new("foaf:gender".to_string())), 
+        &self.graph.create_literal_node(gender.to_string()),
+      ));
+    }
+
+    // Note, this would set multiple conflicting triples if executed multiple times
+    pub fn set_birthday_and_age(&mut self, month: u32, day: u32, year: i32){
+      let me = self.graph.create_uri_node(&Uri::new(":me".to_string()));
+      self.graph.add_triple(&Triple::new(
+        &me, 
+        &self.graph.create_uri_node(&Uri::new("foaf:birthday".to_string())), 
+        &self.graph.create_literal_node(format!("{}-{}", &month, &day))
+      ));
+
+      // Calculate age. This seems to be kinda broken.
+      let utc_birthday = Utc.ymd(year, month, day).and_hms(0, 0, 0);
+      let age = Utc::now().signed_duration_since(utc_birthday).num_weeks() / 52;
+      
+      self.graph.add_triple(&Triple::new(
+        &me, 
+        &self.graph.create_uri_node(&Uri::new("foaf:age".to_string())), 
+        &self.graph.create_literal_node(age.to_string())
+      ));        
+    }
+
+    pub fn add_phone_number(&mut self, phonenum: &str){
+      self.graph.add_triple(&Triple::new(
+        &self.graph.create_uri_node(&Uri::new(":me".to_string())), 
+        &self.graph.create_uri_node(&Uri::new("foaf:phone".to_string())), 
+        &self.graph.create_uri_node(&Uri::new(format!("tel:{}", phonenum)))
+      ));
+    }
+
+    pub fn add_facebook_username(&mut self, username: &str){
+      // Create Facebook Account as top-level node
+      let me_fb = self.graph.create_uri_node(&Uri::new(":me-fb".to_string()));
+
+      self.graph.add_triple(&Triple::new(
+        &me_fb, 
+        &self.graph.create_uri_node(&Uri::new("a".to_string())), 
+        &self.graph.create_uri_node(&Uri::new("foaf:OnlineAccount".to_string()))
+      ));
+
+      // Set attributes
+      self.graph.add_triple(&Triple::new(
+        &me_fb, 
+        &self.graph.create_uri_node(&Uri::new("foaf:accountServiceHomepage".to_string())), 
+        &self.graph.create_uri_node(&Uri::new("https://www.facebook.com/".to_string()))
+      ));
+
+      self.graph.add_triple(& Triple::new(
+        &me_fb, 
+        &self.graph.create_uri_node(&Uri::new("foaf:accountName".to_string())), 
+        &self.graph.create_literal_node(username.to_string())
+      ));
+      
+      // Associate with my foaf profile
+      let me = self.graph.create_uri_node(&Uri::new(":me".to_string()));
+      let foaf_account = self.graph.create_uri_node(&Uri::new("foaf:account".to_string())); 
+      self.graph.add_triple(&Triple::new(
+        &me, 
+        &foaf_account, 
+        &me_fb
+      ));
+    }
 
   }
 }
@@ -51,6 +169,32 @@ pub mod facebook {
   use std::fs::File;
   use std::io;
   use std::io::prelude::Read;
+
+  #[derive(Deserialize)]
+  pub struct FBFriends {
+    pub friends: Vec<FBFriend>
+  }
+
+  #[derive(Deserialize)]
+  pub struct FBFriend {
+    pub name: String,
+    pub target: String,
+  }
+
+  impl FBFriends {
+    pub fn new(path: &str) -> Result<Vec<FBFriend>, io::Error> {
+      let mut file =
+        File::open(path).unwrap_or_else(|err| panic!("Problem opening the file: {:?}", err));
+
+      let mut contents = String::new();
+      file
+        .read_to_string(&mut contents)
+        .expect("Failed to read file to string");
+
+      let p: Vec<FBFriend> = serde_json::from_str(&contents).expect("error parsing JSON!");
+      Ok(p)
+    }
+  }
 
   #[derive(Deserialize)]
   pub struct FBProfileInformation {
