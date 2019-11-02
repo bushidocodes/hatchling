@@ -1,5 +1,5 @@
 [package]
-name = "solidprofileimporter"
+name = "hatchling"
 version = "0.1.0"
 authors = ["Sean McBride <spmcbride1201@gmail.com>"]
 edition = "2018"

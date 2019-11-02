@@ -1,8 +1,8 @@
 use std::env;
 use std::process;
 
-use solidprofileimporter::argument_parser::Config;
-use solidprofileimporter::convert_facebook_to_solid;
+use hatchling::argument_parser::Config;
+use hatchling::convert_facebook_to_solid;
 use std::fs::File;
 use std::io::prelude::*;
 
