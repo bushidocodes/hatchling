@@ -1,0 +1,12 @@
+@prefix : <#> .
+@prefix _: <#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+<>  a                   foaf:Document,     
+                        foaf:PersonalProfileDocument ;
+   foaf:primaryTopic    :me .
+
+<:me> a                   foaf:Person;
+    foaf:age            43 ;
+    foaf:firstName      "Dude" ;
+    foaf:name           "McDude".

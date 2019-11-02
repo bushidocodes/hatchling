@@ -1,0 +1,147 @@
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+@prefix doap:  <http://usefulinc.com/ns/doap#>.
+@prefix :      <http://www.w3.org/2000/10/swap/pim/contact#>.
+@prefix s:     <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix cert:  <http://www.w3.org/ns/auth/cert#>.
+@prefix cc:    <http://creativecommons.org/ns#>.
+@prefix dc:    <http://purl.org/dc/elements/1.1/>.
+@prefix dct:   <http://purl.org/dc/terms/>.
+@prefix ldp:   <http://www.w3.org/ns/ldp#>.
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#>.
+@prefix geo:   <http://www.w3.org/2003/01/geo/wgs84_pos#>.
+@prefix w3c:   <http://www.w3.org/data#>.
+@prefix card:  <https://www.w3.org/People/Berners-Lee/card#>.
+@prefix rsa:   <http://www.w3.org/ns/auth/rsa#> .
+@prefix schema: <http://schema.org/>.
+@prefix sioc: <http://rdfs.org/sioc/ns#>.
+@prefix solid: <http://www.w3.org/ns/solid/terms#>.
+@prefix space: <http://www.w3.org/ns/pim/space#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+
+# About this document:
+# The <> (the empty URI) means "this document".
+
+<>  a foaf:PersonalProfileDocument;
+    cc:license <http://creativecommons.org/licenses/by-nc/3.0/>;
+    dc:title "Tim Berners-Lee's FOAF file";
+    foaf:maker card:i;
+    foaf:primaryTopic card:i.
+
+# This is where my list of people I know is:
+<https://timbl.com/timbl/Public/friends.ttl>
+    a foaf:PersonalProfileDocument;  # Suitable place to edit
+    cc:license <http://creativecommons.org/licenses/by-nc/3.0/>;
+    dc:title "Tim Berners-Lee's editable profile";
+    foaf:maker card:i;
+    foaf:primaryTopic card:i.
+
+solid:editableProfile <https://timbl.com/timbl/Public/friends.ttl>.
+
+# Suggest fetch it for those reading it
+card:i  rdfs:seeAlso <https://timbl.com/timbl/Public/friends.ttl>;
+
+############## Stuff about me
+w3c:W3C foaf:member card:i.
+<http://dig.csail.mit.edu/data#DIG> foaf:member card:i.
+
+card:i
+    s:label  	"Tim Berners-Lee";   # For generic user interfaces etc
+
+    # Using VCARD vocabulary:
+
+    vcard:fn  "Tim Berners-Lee";
+
+    vcard:hasAddress
+        [ a    vcard:Work;
+        vcard:locality "Cambridge";
+        vcard:postal-code "02139";
+        vcard:region "MA";
+        vcard:street-address "32 Vassar Street" ];
+
+  # Using Contact vocabulary:
+
+    a :Male;
+
+    :office [
+    	geo:location [geo:lat "42.361860"; geo:long "-71.091840"];
+    	:address [
+    		:street "32 Vassar Street";
+    		:street2 "MIT CSAIL Building 32";
+    		:city "Cambridge";
+    		:postalCode "02139";
+    		:country "USA"
+	]
+    ];
+    :publicHomePage <../Berners-Lee/>;
+    :homePage <../Berners-Lee/>;
+    :assistant card:amy;
+
+# Using FOAF vocabulary:
+
+    a foaf:Person;
+    foaf:based_near [geo:lat "42.361860"; geo:long "-71.091840"];
+
+    # The idea is that this is the one I would suggest you use and
+    # I use for myself, which can lead to others.
+    :preferredURI "https://www.w3.org/People/Berners-Lee/card#i";
+
+    foaf:mbox <mailto:timbl@w3.org>;
+    foaf:mbox_sha1sum "965c47c5a70db7407210cef6e4e6f5374a525c5c";
+    foaf:openid <https://www.w3.org/People/Berners-Lee/>;
+    sioc:avatar <images/timbl-image-by-Coz-cropped.jpg>;
+    foaf:img <https://www.w3.org/Press/Stock/Berners-Lee/2001-europaeum-eighth.jpg>;
+
+    foaf:family_name "Berners-Lee";
+    foaf:givenname "Timothy";
+    foaf:title "Sir";
+    foaf:homepage <https://www.w3.org/People/Berners-Lee/>;
+    foaf:mbox <mailto:timbl@w3.org>;
+    foaf:name "Timothy Berners-Lee";
+    foaf:nick "TimBL", "timbl";
+
+    foaf:account <http://twitter.com/timberners_lee>,
+        <http://www.reddit.com/user/timbl/>,
+        <http://en.wikipedia.org/wiki/User:Timbl>;
+
+    foaf:workplaceHomepage <https://www.w3.org/>.
+
+card:i                                              
+    is doap:developer of    <http://www.w3.org/2000/10/swap/data#Cwm>,
+                            <http://dig.csail.mit.edu/2005/ajar/ajaw/data#Tabulator>.
+
+
+<http://dig.csail.mit.edu/2007/01/camp/data#course> 
+    foaf:maker card:i.
+
+
+####### 2011  WWW2011
+
+<http://www.w3.org/2011/Talks/0331-hyderabad-tbl/data#talk>
+    dct:title "Designing the Web for an Open Society";
+    foaf:maker card:i.
+
+<http://www.ecs.soton.ac.uk/~dt2/dlstuff/www2006_data#panel-panelk01>
+	s:label  "The Next Wave of the Web (Plenary Panel)";
+	:participant card:i.
+
+<http://wiki.ontoworld.org/index.php/_IRW2006>
+	:participant card:i.
+
+<http://wiki.ontoworld.org/index.php/_IRW2006>
+    dc:title "Identity, Reference and the Web workshop 2006".
+
+card:i foaf:weblog
+<http://dig.csail.mit.edu/breadcrumbs/blog/4> .
+<http://dig.csail.mit.edu/breadcrumbs/blog/4>
+    rdfs:seeAlso <http://dig.csail.mit.edu/breadcrumbs/blog/feed/4>; # Sigh
+    dc:title "timbl's blog on DIG";
+    foaf:maker card:i.
+
+<../../DesignIssues/Overview.html>   #  Has RDFA in it
+    dc:title "Design Issues for the World Wide Web";
+    foaf:maker card:i.
+
+#ends
