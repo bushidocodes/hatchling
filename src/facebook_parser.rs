@@ -28,7 +28,7 @@ impl FBFriends {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Profile {
     pub name: Name,
     pub emails: Emails,
@@ -58,7 +58,7 @@ pub struct Profile {
     pub intro_bio: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct FBProfileInformation {
     pub profile: Profile,
 }
@@ -77,93 +77,113 @@ impl FBProfileInformation {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Name {
     pub full_name: String,
     pub first_name: String,
     pub middle_name: String,
     pub last_name: String,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Emails {
     pub emails: Vec<String>,
     pub previous_emails: Vec<String>,
     pub pending_emails: Vec<String>,
     pub ad_account_emails: Vec<String>,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Date {
     pub year: u16,
     pub month: u8,
     pub day: u8,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Gender {
     pub gender_option: String,
     pub pronoun: String,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct TimestampedString {
     pub name: String,
     pub timestamp: u64,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Relationship {
     pub status: String,
     pub partner: String,
     pub anniversary: Date,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct FamilyMember {
     pub name: String,
     pub relation: String,
 }
 
-#[derive(Deserialize)]
-pub struct EducationExperience {
-    pub name: String,
-    #[serde(default)]
-    pub start_timestamp: u64,
-    #[serde(default)]
-    pub end_timestamp: u64,
-    pub graduated: bool,
-    #[serde(default)]
-    pub description: String,
-    pub concentrations: Vec<String>,
-    #[serde(default)]
-    pub degree: String,
-    pub school_type: String,
-}
 // #[derive(Deserialize)]
-// pub enum EducationExperience {
-//   HighSchool {
-//     name: String,
-//     start_timestamp: u64,
-//     end_timestamp: u64,
-//     graduated: bool,
-//     description: String,
-//   },
-//   College {
-//     name: String,
-//     start_timestamp: u64,
-//     end_timestamp: u64,
-//     graduated: bool,
-//     description: String,
-//     concentrations: Vec<String>, // Up to three?
-//   },
-//   GraduateSchool {
-//     name: String,
-//     start_timestamp: u64,
-//     end_timestamp: u64,
-//     graduated: bool,
-//     description: String,
-//     concentrations: Vec<String>,
-//     degree: String,
-//   },
+// pub struct EducationExperience {
+//     pub name: String,
+//     #[serde(default)]
+//     pub start_timestamp: u64,
+//     #[serde(default)]
+//     pub end_timestamp: u64,
+//     pub graduated: bool,
+//     #[serde(default)]
+//     pub description: String,
+//     pub concentrations: Vec<String>,
+//     #[serde(default)]
+//     pub degree: String,
+//     pub school_type: String,
 // }
+#[derive(Deserialize, Debug)]
+#[serde(tag = "school_type")]
+pub enum EducationExperience {
+    #[serde(rename = "High School")]
+    HighSchool {
+        #[serde(default)]
+        name: String,
+        #[serde(default)]
+        start_timestamp: u64,
+        #[serde(default)]
+        end_timestamp: u64,
+        #[serde(default)]
+        graduated: bool,
+        #[serde(default)]
+        description: String,
+    },
+    College {
+        #[serde(default)]
+        name: String,
+        #[serde(default)]
+        start_timestamp: u64,
+        #[serde(default)]
+        end_timestamp: u64,
+        #[serde(default)]
+        graduated: bool,
+        #[serde(default)]
+        description: String,
+        #[serde(default)]
+        concentrations: Vec<String>, // Up to three?
+    },
+    #[serde(rename = "Graduate School")]
+    GraduateSchool {
+        #[serde(default)]
+        name: String,
+        #[serde(default)]
+        start_timestamp: u64,
+        #[serde(default)]
+        end_timestamp: u64,
+        graduated: bool,
+        #[serde(default)]
+        description: String,
+        #[serde(default)]
+        concentrations: Vec<String>,
+        #[serde(default)]
+        degree: String,
+    },
+}
 
 // TODO: Determine how "I currently work here" is encoded
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct WorkExperience {
     pub employer: String,
     pub title: String,
@@ -175,12 +195,12 @@ pub struct WorkExperience {
 }
 
 // Used for political and religious views
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct View {
     pub name: String,
     pub description: String,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Address {
     pub street: String,
     pub city: String,
@@ -190,13 +210,13 @@ pub struct Address {
     pub country_code: String,
     pub region: String,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct PhoneNumber {
     pub phone_type: String,
     pub phone_number: String,
     pub verified: bool,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct PlaceLived {
     pub place: String,
     pub start_timestamp: u64, // No clear end_timestamp

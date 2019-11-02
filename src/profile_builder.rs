@@ -5,17 +5,22 @@ use rdf::namespace::Namespace;
 use rdf::triple::Triple;
 use rdf::uri::Uri;
 
+pub fn clean_string(src: &str) -> String {
+    src.replace(" ", "_")
+        .replace(".", "_")
+        .replace("-", "_")
+        .replace(",", "")
+}
+
 pub struct Profile {
     pub graph: rdf::graph::Graph,
 }
 
 impl Profile {
     pub fn new() -> Profile {
-        // Instantiate our RDF graph
         let mut new_profile = Profile {
             graph: Graph::new(None),
         };
-        // Add Namespaces
         new_profile
             .graph
             .add_namespace(&Namespace::new("".to_string(), Uri::new("#".to_string())));
@@ -37,7 +42,7 @@ impl Profile {
         ));
         new_profile.graph.add_namespace(&Namespace::new(
             "resource".to_string(),
-            Uri::new("https://dbpedia.org/resource/".to_string()),
+            Uri::new("http://dbpedia.org/resource/".to_string()),
         ));
 
         let foaf_maker = new_profile
@@ -57,7 +62,6 @@ impl Profile {
         let schema_person = new_profile
             .graph
             .create_uri_node(&Uri::new("http://schema.org/Person".to_string()));
-        // Decorate with foaf schema nodes
 
         //  The <> (the empty URI) means "this document".
         let solid_card = new_profile.graph.create_uri_node(&Uri::new("".to_string()));
@@ -68,7 +72,6 @@ impl Profile {
         let is_a = new_profile
             .graph
             .create_uri_node(&Uri::new("a".to_string()));
-        // This is a foaf personal profile I made for myself
         new_profile.graph.add_triple(&Triple::new(
             &solid_card,
             &is_a,
@@ -80,15 +83,12 @@ impl Profile {
         new_profile
             .graph
             .add_triple(&Triple::new(&solid_card, &foaf_primary_topic, &me));
-        // Create Me
         new_profile
             .graph
-            .add_triple(&Triple::new(&me, &is_a, &schema_person)); // I'm a Schema.org Person
+            .add_triple(&Triple::new(&me, &is_a, &schema_person));
         new_profile
             .graph
-            .add_triple(&Triple::new(&me, &is_a, &foaf_person)); // and a foaf Person
-
-        // And return
+            .add_triple(&Triple::new(&me, &is_a, &foaf_person));
         new_profile
     }
 
@@ -99,6 +99,13 @@ impl Profile {
             &self
                 .graph
                 .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/name".to_string())),
+            &self.graph.create_literal_node(name.to_string()),
+        ));
+        self.graph.add_triple(&Triple::new(
+            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/name".to_string())),
             &self.graph.create_literal_node(name.to_string()),
         ));
     }
@@ -119,6 +126,13 @@ impl Profile {
             )),
             &self.graph.create_literal_node(lastname.to_string()),
         ));
+        self.graph.add_triple(&Triple::new(
+            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/familyName".to_string())),
+            &self.graph.create_literal_node(lastname.to_string()),
+        ));
     }
 
     // Note, this would set multiple conflicting triples if executed multiple times
@@ -137,6 +151,13 @@ impl Profile {
                 .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/givenName".to_string())),
             &self.graph.create_literal_node(firstname.to_string()),
         ));
+        self.graph.add_triple(&Triple::new(
+            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/givenName".to_string())),
+            &self.graph.create_literal_node(firstname.to_string()),
+        ));
     }
 
     // Note, this would set multiple conflicting triples if executed multiple times
@@ -146,6 +167,13 @@ impl Profile {
             &self
                 .graph
                 .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/gender".to_string())),
+            &self.graph.create_literal_node(gender.to_string()),
+        ));
+        self.graph.add_triple(&Triple::new(
+            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/gender".to_string())),
             &self.graph.create_literal_node(gender.to_string()),
         ));
     }
@@ -161,6 +189,16 @@ impl Profile {
             &self
                 .graph
                 .create_literal_node(format!("{}-{}", &month, &day)),
+        ));
+        // Uses ISO 8601 https://en.wikipedia.org/wiki/ISO_8601
+        self.graph.add_triple(&Triple::new(
+            &me,
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/birthDate".to_string())),
+            &self
+                .graph
+                .create_literal_node(format!("{}-{}-{}", &year, &month, &day)),
         ));
 
         // Calculate age. This seems to be kinda broken.
@@ -184,6 +222,122 @@ impl Profile {
             &self
                 .graph
                 .create_uri_node(&Uri::new(format!("tel:{}", phonenum))),
+        ));
+        self.graph.add_triple(&Triple::new(
+            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/telephone".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new(format!("tel:{}", phonenum))),
+        ));
+    }
+
+    pub fn add_birth_place(&mut self, birth_place: &str) {
+        let birth_place_node = &self
+            .graph
+            .create_blank_node_with_id(clean_string(birth_place));
+
+        self.graph.add_triple(&Triple::new(
+            &birth_place_node,
+            &self.graph.create_uri_node(&Uri::new("a".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/Place".to_string())),
+        ));
+        self.graph.add_triple(&Triple::new(
+            &birth_place_node,
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/address".to_string())),
+            &self.graph.create_literal_node(birth_place.to_string()),
+        ));
+
+        self.graph.add_triple(&Triple::new(
+            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/birthPlace".to_string())),
+            &birth_place_node,
+        ));
+    }
+
+    pub fn add_home_location(&mut self, home_location: &str) {
+        let home_location_node = &self
+            .graph
+            .create_blank_node_with_id(clean_string(home_location));
+
+        self.graph.add_triple(&Triple::new(
+            &home_location_node,
+            &self.graph.create_uri_node(&Uri::new("a".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/Place".to_string())),
+        ));
+        self.graph.add_triple(&Triple::new(
+            &home_location_node,
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/address".to_string())),
+            &self.graph.create_literal_node(home_location.to_string()),
+        ));
+
+        self.graph.add_triple(&Triple::new(
+            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/homeLocation".to_string())),
+            &home_location_node,
+        ));
+    }
+
+    pub fn add_email(&mut self, email: &str) {
+        self.graph.add_triple(&Triple::new(
+            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/mbox".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new(format!("mailto:{}", email))),
+        ));
+        self.graph.add_triple(&Triple::new(
+            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/email".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new(format!("mailto:{}", email))),
+        ));
+    }
+
+    pub fn add_alumni_relationship(&mut self, school_name: &str) {
+        let school = &self
+            .graph
+            .create_blank_node_with_id(clean_string(school_name));
+        self.graph.add_triple(&Triple::new(
+            &school,
+            &self.graph.create_uri_node(&Uri::new("a".to_string())),
+            &self.graph.create_uri_node(&Uri::new(
+                "http://schema.org/EducationalOrganization".to_string(),
+            )),
+        ));
+        self.graph.add_triple(&Triple::new(
+            &school,
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/name".to_string())),
+            &self.graph.create_literal_node(school_name.to_string()),
+        ));
+
+        self.graph.add_triple(&Triple::new(
+            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/alumniOf".to_string())),
+            &school,
         ));
     }
 
@@ -209,14 +363,9 @@ impl Profile {
     }
 
     pub fn add_facebook_friend(&mut self, name: &str, fb_profile_url: &str) {
-        let friend_id = name.replace(" ", "_");
-        let friend_id = friend_id.replace(".", "_");
-        let friend_id = friend_id.replace("-", "_");
-        // let friend = self.graph.create_blank_node_with_id(id: String)
-
         let friend = self
             .graph
-            .create_uri_node(&Uri::new(format!("#{}", friend_id)));
+            .create_uri_node(&Uri::new(format!("#{}", clean_string(name))));
 
         self.graph.add_triple(&Triple::new(
             &friend,
@@ -234,7 +383,7 @@ impl Profile {
             &self.graph.create_literal_node(name.to_string()),
         ));
 
-        self.add_account(fb_profile_url, Some(&friend_id));
+        self.add_account(fb_profile_url, Some(&clean_string(name)));
 
         self.graph.add_triple(&Triple::new(
             &self.graph.create_uri_node(&Uri::new("#me".to_string())),

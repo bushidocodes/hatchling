@@ -2,7 +2,7 @@ pub mod argument_parser;
 pub mod facebook_parser;
 pub mod profile_builder;
 
-use facebook_parser::{FBFriends, FBProfileInformation};
+use facebook_parser::{EducationExperience, FBFriends, FBProfileInformation};
 use profile_builder::Profile;
 use rdf::writer::rdf_writer::RdfWriter;
 use rdf::writer::turtle_writer::TurtleWriter;
@@ -17,27 +17,22 @@ pub fn convert_facebook_to_solid(
 
     let mut profile = Profile::new();
 
-    // foaf name
     if !my_fb_profile.profile.name.full_name.is_empty() {
         profile.set_name(&my_fb_profile.profile.name.full_name);
     }
 
-    // foaf familyName / lastName
     if !my_fb_profile.profile.name.last_name.is_empty() {
         profile.set_last_name(&my_fb_profile.profile.name.last_name);
     }
 
-    // foaf givenName / firstName
     if !my_fb_profile.profile.name.first_name.is_empty() {
         profile.set_first_name(&my_fb_profile.profile.name.first_name);
     }
 
-    // foaf gender
     if !my_fb_profile.profile.gender.gender_option.is_empty() {
         profile.set_gender(&my_fb_profile.profile.gender.gender_option);
     }
 
-    // foaf birthday and age - Calculations seems to not quite correct
     if !my_fb_profile.profile.birthday.month > 0
         && !my_fb_profile.profile.birthday.day > 0
         && !my_fb_profile.profile.birthday.year > 0
@@ -49,7 +44,6 @@ pub fn convert_facebook_to_solid(
         );
     }
 
-    // foaf phone
     for elem in my_fb_profile.profile.phone_numbers.iter() {
         profile.add_phone_number(&elem.phone_number);
     }
@@ -64,7 +58,60 @@ pub fn convert_facebook_to_solid(
         );
     }
 
-    // Add FB friends
+    for email in my_fb_profile.profile.emails.emails {
+        profile.add_email(&email);
+    }
+
+    for edu in my_fb_profile.profile.education_experiences {
+        match edu {
+            EducationExperience::GraduateSchool {
+                name,
+                graduated,
+                start_timestamp: _,
+                end_timestamp: _,
+                description: _,
+                concentrations: _,
+                degree: _,
+            } => {
+                if graduated {
+                    profile.add_alumni_relationship(&name)
+                };
+            }
+            EducationExperience::College {
+                name,
+                graduated,
+                start_timestamp: _,
+                end_timestamp: _,
+                description: _,
+                concentrations: _,
+            } => {
+                if graduated {
+                    profile.add_alumni_relationship(&name)
+                };
+            }
+            EducationExperience::HighSchool {
+                name,
+                graduated,
+                start_timestamp: _,
+                end_timestamp: _,
+                description: _,
+            } => {
+                if graduated {
+                    profile.add_alumni_relationship(&name)
+                };
+            }
+        }
+    }
+
+    if !my_fb_profile.profile.current_city.name.is_empty() {
+        profile.add_home_location(&my_fb_profile.profile.current_city.name)
+    }
+
+    // I assume FB "hometown" maps clearly to birthPlace. This is potentially not, true
+    if !my_fb_profile.profile.hometown.name.is_empty() {
+        profile.add_birth_place(&my_fb_profile.profile.hometown.name)
+    }
+
     for friend_raw in my_fb_friends.iter() {
         profile.add_facebook_friend(&friend_raw.name, &friend_raw.target)
     }
