@@ -2,7 +2,7 @@
 
 _Break out of the Facebook Shell by converting your social Data into Turtle Triples_
 
-![Sea Turtle Hatching](https://media.giphy.com/media/JUvro700PEUqUOXsgm/giphy.gif)
+![Dancing Hatchling](https://media.giphy.com/media/M7Txf8Imy1pGo/giphy.gif)
 
 I'm a fan of Facebook. They create social networks that my grandparents are able to use, and they contribute heavily to the open-source ecosystem. That said, I'm a bigger fan of user empowerment and choice.
 
