@@ -3,6 +3,11 @@ name = "hatchling"
 version = "0.1.0"
 authors = ["Sean McBride <spmcbride1201@gmail.com>"]
 edition = "2018"
+description = "Converts Facebook social media data exported via the Download Your Information tool (https://www.facebook.com/settings) into Turtle triplets for a SOLID (https://solid.mit.edu/) profile"
+repository = "https://github.com/bushidocodes/hatchling"
+readme = "./README.md"
+keywords = ["rdf", "linked-data", "turtle", "solid", "facebook"]
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
