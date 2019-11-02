@@ -53,7 +53,7 @@ JSON.stringify([...document.querySelectorAll("[data-testid = 'friend_list_item']
 
 ## Step 3: Download and Run Binary
 
-1. Download the binary for the appropriate platform and architecture (at this time, only x64 Linux and Windows are supported) to the same directory as your JSON files
+1. [Download the binary for the appropriate platform and architecture](https://github.com/bushidocodes/hatchling/releases) (at this time, only x64 Linux and Windows are supported) to the same directory as your JSON files
 2. Start a command prompt and navigate to the folder with the binary and JSON files
 3. Run `hatchling.exe profile_information.json out.ttl` if you skipped Step 2. Otherwise run `hatchling.exe --friends friends.json profile_information.json out.ttl`.
 
