@@ -2,7 +2,7 @@
 
 _Break out of the Facebook Shell by converting your social Data into Turtle Triples_
 
-![](https://media.giphy.com/media/JUvro700PEUqUOXsgm/giphy.gif)
+![Sea Turtle Hatching](https://media.giphy.com/media/JUvro700PEUqUOXsgm/giphy.gif)
 
 I'm a fan of Facebook. They create social networks that my grandparents are able to use, and they contribute heavily to the open-source ecosystem. That said, I'm a bigger fan of user empowerment and choice.
 
@@ -23,13 +23,13 @@ Note: If you want to learn more about the theory beTo learn more about this, I s
 5. Download the zip file to a suitable location
 6. Extract the zip file and copy `profile_information.json` to handy location
 
-## Step 2: Export your connections
+## Step 2: [Optional] Export your connections
 
 Facebook's [Download Your Information](https://www.facebook.com/dyi/?x=AdkiqAMlydfH5oKw) advertises the following:
 
-```
-You can download a copy of your Facebook information at any time. You can download a complete copy, or you can select only the types of information and date ranges you want. You can choose to receive your information in an HTML format that is easy to view, or a JSON format, which could allow another service to more easily import it.
-```
+
+> You can download a copy of your Facebook information at any time. You can download a complete copy, or you can select only the types of information and date ranges you want. You can choose to receive your information in an HTML format that is easy to view, or a JSON format, which could allow another service to more easily import it.
+
 
 This is quite useful for exporting profile information and all of the Facebook metadata that Facebook tags you with for advertising and tracking purposes. By downloading your personal data, you can get a good grasp of the data that Facebook has on you, and that can help you make informed decisions about your privacy settings and the degree to which your are comfortable being tracked while using Facebook.
 
@@ -51,9 +51,11 @@ JSON.stringify([...document.querySelectorAll("[data-testid = 'friend_list_item']
 ![Image showing the copy button in devtools](./docs/copy-json.jpg)
 5. Use a code editor to paste this data into a `friends.json` file and save to the same directory as `profile_information.json`
 
-## Step 3: Download Binary
+## Step 3: Download and Run Binary
 
-TODO
+1. Download the binary for the appropriate platform and architecture (at this time, only x64 Linux and Windows are supported) to the same directory as your JSON files
+2. Start a command prompt and navigate to the folder with the binary and JSON files
+3. Run `hatchling.exe profile_information.json out.ttl` if you skipped Step 2. Otherwise run `hatchling.exe --friends friends.json profile_information.json out.ttl`.
 
 ## Step 4: Validate and Edit Output file
 
