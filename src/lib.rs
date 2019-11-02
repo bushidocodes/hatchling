@@ -1,4 +1,3 @@
-pub mod argument_parser;
 pub mod facebook_parser;
 pub mod profile_builder;
 
@@ -9,11 +8,10 @@ use rdf::writer::turtle_writer::TurtleWriter;
 use std::io;
 
 pub fn convert_facebook_to_solid(
-    facebook_zip: &str,
-    friends_json: &str,
+    profile_path: &str,
+    friends_path: Option<&str>,
 ) -> Result<String, io::Error> {
-    let my_fb_profile = FBProfileInformation::new(facebook_zip)?;
-    let my_fb_friends = FBFriends::new(friends_json)?;
+    let my_fb_profile = FBProfileInformation::new(profile_path)?;
 
     let mut profile = Profile::new();
 
@@ -112,9 +110,12 @@ pub fn convert_facebook_to_solid(
         profile.add_birth_place(&my_fb_profile.profile.hometown.name)
     }
 
-    for friend_raw in my_fb_friends.iter() {
-        profile.add_facebook_friend(&friend_raw.name, &friend_raw.target)
-    }
+    if let Some(friends) = friends_path {
+        let my_fb_friends = FBFriends::new(friends)?;
+        for friend_raw in my_fb_friends.iter() {
+            profile.add_facebook_friend(&friend_raw.name, &friend_raw.target)
+        }
+    };
 
     let writer = TurtleWriter::new(profile.graph.namespaces());
     let results = writer.write_to_string(&profile.graph).unwrap();

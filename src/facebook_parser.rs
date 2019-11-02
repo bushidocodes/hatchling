@@ -64,12 +64,8 @@ pub struct FBProfileInformation {
 }
 
 impl FBProfileInformation {
-    pub fn new(zip_path: &str) -> Result<FBProfileInformation, io::Error> {
-        let file = File::open(zip_path)?;
-        let mut zip = zip::ZipArchive::new(file)?;
-        // The path seems to be able to be either facebook-bushidocodes/profile_information/profile_information.json
-        // or profile_information/profile_information.json
-        let mut file = zip.by_name("profile_information/profile_information.json")?;
+    pub fn new(path: &str) -> Result<FBProfileInformation, io::Error> {
+        let mut file = File::open(path)?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
         let p: FBProfileInformation = serde_json::from_str(&contents)?;
