@@ -1,7 +1,5 @@
 use serde::Deserialize;
-use std::fs::File;
 use std::io;
-use std::io::prelude::Read;
 
 #[derive(Deserialize)]
 pub struct FBFriends {
@@ -17,15 +15,8 @@ pub struct FBFriend {
 }
 
 impl FBFriends {
-    pub fn new(path: &str) -> Result<Vec<FBFriend>, io::Error> {
-        let mut file =
-            File::open(path).unwrap_or_else(|err| panic!("Problem opening the file: {:?}", err));
-
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)
-            .expect("Failed to read file to string");
-
-        let p: Vec<FBFriend> = serde_json::from_str(&contents).expect("error parsing JSON!");
+    pub fn new(contents: &str) -> Result<Vec<FBFriend>, io::Error> {
+        let p: Vec<FBFriend> = serde_json::from_str(&contents)?;
         Ok(p)
     }
 }
@@ -67,10 +58,7 @@ pub struct FBProfileInformation {
 }
 
 impl FBProfileInformation {
-    pub fn new(path: &str) -> Result<FBProfileInformation, io::Error> {
-        let mut file = File::open(path)?;
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)?;
+    pub fn new(contents: &str) -> Result<FBProfileInformation, io::Error> {
         let p: FBProfileInformation = serde_json::from_str(&contents)?;
         Ok(p)
     }

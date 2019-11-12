@@ -1,9 +1,11 @@
-use chrono::prelude::*;
-use chrono::Utc;
+// use chrono::prelude::*;
+// use chrono::Utc;
 use rdf::graph::Graph;
 use rdf::namespace::Namespace;
 use rdf::triple::Triple;
 use rdf::uri::Uri;
+use rdf::writer::rdf_writer::RdfWriter;
+use rdf::writer::turtle_writer::TurtleWriter;
 
 pub fn clean_string(src: &str) -> String {
     src.replace(" ", "_")
@@ -202,15 +204,15 @@ impl Profile {
         ));
 
         // Calculate age. This seems to be kinda broken.
-        let utc_birthday = Utc.ymd(year, month, day).and_hms(0, 0, 0);
-        let age = Utc::now().signed_duration_since(utc_birthday).num_weeks() / 52;
-        self.graph.add_triple(&Triple::new(
-            &me,
-            &self
-                .graph
-                .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/age".to_string())),
-            &self.graph.create_literal_node(age.to_string()),
-        ));
+        // let utc_birthday = Utc.ymd(year, month, day).and_hms(0, 0, 0);
+        // let age = Utc::now().signed_duration_since(utc_birthday).num_weeks() / 52;
+        // self.graph.add_triple(&Triple::new(
+        //     &me,
+        //     &self
+        //         .graph
+        //         .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/age".to_string())),
+        //     &self.graph.create_literal_node(age.to_string()),
+        // ));
     }
 
     pub fn add_phone_number(&mut self, phonenum: &str) {
@@ -392,5 +394,9 @@ impl Profile {
                 .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/knows".to_string())),
             &friend,
         ));
+    }
+    pub fn write_to_string(&mut self) -> Result<String, rdf::error::Error> {
+        let writer = TurtleWriter::new(self.graph.namespaces());
+        writer.write_to_string(&self.graph)
     }
 }

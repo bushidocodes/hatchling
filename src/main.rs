@@ -35,10 +35,27 @@ fn main() {
     let output = matches.value_of("output").unwrap();
     let friends = matches.value_of("friends"); // Optional
 
-    let solid_profile = convert_facebook_to_solid(input, friends).unwrap_or_else(|err| {
-        eprintln!("{}", err);
-        process::exit(1)
-    });
+    let mut profile_file = File::open(input).unwrap();
+    let mut profile_string = String::new();
+    profile_file.read_to_string(&mut profile_string).unwrap();
+
+    let solid_profile = match friends {
+        Some(friends) => {
+            let mut friends_file = File::open(friends).unwrap();
+            let mut friends_string = String::new();
+            friends_file.read_to_string(&mut friends_string).unwrap();
+            convert_facebook_to_solid(&profile_string, Some(&friends_string)).unwrap_or_else(
+                |err| {
+                    eprintln!("{}", err);
+                    process::exit(1)
+                },
+            )
+        }
+        None => convert_facebook_to_solid(&profile_string, None).unwrap_or_else(|err| {
+            eprintln!("{}", err);
+            process::exit(1)
+        }),
+    };
 
     let mut file = File::create(output).unwrap();
     file.write_all(solid_profile.as_bytes()).unwrap();

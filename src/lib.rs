@@ -3,15 +3,13 @@ pub mod profile_builder;
 
 use facebook_parser::{EducationExperience, FBFriends, FBProfileInformation};
 use profile_builder::Profile;
-use rdf::writer::rdf_writer::RdfWriter;
-use rdf::writer::turtle_writer::TurtleWriter;
-use std::io;
+use std::error;
 
 pub fn convert_facebook_to_solid(
-    profile_path: &str,
-    friends_path: Option<&str>,
-) -> Result<String, io::Error> {
-    let my_fb_profile = FBProfileInformation::new(profile_path)?;
+    profile: &str,
+    friends: Option<&str>,
+) -> Result<String, Box<dyn error::Error>> {
+    let my_fb_profile = FBProfileInformation::new(profile)?;
 
     let mut profile = Profile::new();
 
@@ -110,14 +108,12 @@ pub fn convert_facebook_to_solid(
         profile.add_birth_place(&my_fb_profile.profile.hometown.name)
     }
 
-    if let Some(friends) = friends_path {
+    if let Some(friends) = friends {
         let my_fb_friends = FBFriends::new(friends)?;
         for friend_raw in my_fb_friends.iter() {
             profile.add_facebook_friend(&friend_raw.name, &friend_raw.target)
         }
     };
-
-    let writer = TurtleWriter::new(profile.graph.namespaces());
-    let results = writer.write_to_string(&profile.graph).unwrap();
-    Ok(results)
+    let profile_string = profile.write_to_string()?;
+    Ok(profile_string)
 }
