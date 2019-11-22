@@ -4,6 +4,9 @@ _Break out of the Facebook Shell by converting your social Data into Turtle Trip
 
 ![Dancing Hatchling](https://media.giphy.com/media/M7Txf8Imy1pGo/giphy.gif)
 
+
+[Watch my YouTube video on this project!](https://youtu.be/m9_CwF9SUuY)
+
 I'm a fan of Facebook. They create social networks that my grandparents are able to use, and they contribute heavily to the open-source ecosystem. That said, I'm a bigger fan of user empowerment and choice.
 
 Out of the alternatives today, I believe that Tim Berners-Lee's vision for [SOLID (a decentralized social network built around linked-data principles)](https://solid.mit.edu/) offers the most pragmatic vision for data ownership. It offers the possibility that existing social networks could work with the standards bodies and adopt linked data and the SOLID data ownership model. 
