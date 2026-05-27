@@ -1,0 +1,14 @@
+{
+  "friends_v2": [
+    { "name": "Alice Nguyen", "timestamp": 1190678400 },
+    { "name": "Bob Kowalski", "timestamp": 1201824000 },
+    { "name": "Carmen Reyes-Morales", "timestamp": 1214870400 },
+    { "name": "David Okonkwo", "timestamp": 1220486400 },
+    { "name": "Elena Petrová", "timestamp": 1230768000 },
+    { "name": "François Beaumont", "timestamp": 1243468800 },
+    { "name": "Gabriela Müller", "timestamp": 1256428800 },
+    { "name": "Hiroshi Tanaka", "timestamp": 1262304000 },
+    { "name": "Ingrid Björnsdóttir", "timestamp": 1277337600 },
+    { "name": "José María Vázquez", "timestamp": 1293840000 }
+  ]
+}

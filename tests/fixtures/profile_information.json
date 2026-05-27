@@ -1,0 +1,169 @@
+{
+  "profile_v2": {
+    "name": {
+      "full_name": "Jane Doe-Smith",
+      "first_name": "Jane",
+      "middle_name": "Marie",
+      "last_name": "Doe-Smith"
+    },
+    "emails": {
+      "emails": [
+        "jane.doe@example.com",
+        "janedoe1985@gmail.com"
+      ],
+      "previous_emails": [
+        "jdoe1985@yahoo.com"
+      ],
+      "pending_emails": [],
+      "ad_account_emails": []
+    },
+    "birthday": {
+      "year": 1985,
+      "month": 3,
+      "day": 14
+    },
+    "gender": {
+      "gender_option": "Female",
+      "pronoun": "She/Her"
+    },
+    "previous_names": [
+      {
+        "name": "Jane Marie Doe",
+        "timestamp": 1420070400
+      }
+    ],
+    "other_names": [],
+    "current_city": {
+      "name": "Portland, Oregon",
+      "timestamp": 1546300800
+    },
+    "hometown": {
+      "name": "Eugene, Oregon",
+      "timestamp": 0
+    },
+    "relationship": {
+      "status": "Married",
+      "partner": "Alex Smith",
+      "anniversary": {
+        "year": 2012,
+        "month": 7,
+        "day": 4
+      },
+      "timestamp": 1341360000
+    },
+    "family_members": [
+      {
+        "name": "Margaret Doe",
+        "relation": "Mother",
+        "timestamp": 1403761125
+      },
+      {
+        "name": "Robert Doe",
+        "relation": "Father",
+        "timestamp": 1403761125
+      },
+      {
+        "name": "Alex Smith",
+        "relation": "Spouse",
+        "timestamp": 1341360000
+      },
+      {
+        "name": "Carlos López-García",
+        "relation": "Brother",
+        "timestamp": 1403761125
+      }
+    ],
+    "education_experiences": [
+      {
+        "school_type": "High School",
+        "name": "Eugene High School",
+        "start_timestamp": 946684800,
+        "end_timestamp": 1088640000,
+        "graduated": true,
+        "description": ""
+      },
+      {
+        "school_type": "College",
+        "name": "University of Oregon",
+        "start_timestamp": 1096588800,
+        "end_timestamp": 1214870400,
+        "graduated": true,
+        "description": "B.S. Computer Science",
+        "concentrations": ["Computer Science", "Mathematics"]
+      },
+      {
+        "school_type": "Graduate School",
+        "name": "Oregon State University",
+        "start_timestamp": 1220227200,
+        "end_timestamp": 1341100800,
+        "graduated": true,
+        "description": "M.S. Software Engineering",
+        "concentrations": ["Software Engineering"],
+        "degree": "Master of Science"
+      }
+    ],
+    "work_experiences": [
+      {
+        "employer": {
+          "name": "Acme Software Inc."
+        },
+        "title": "Senior Software Engineer",
+        "location": "Portland, OR",
+        "description": "Backend systems and APIs",
+        "start_timestamp": 1341100800,
+        "end_timestamp": 0
+      }
+    ],
+    "languages": [
+      {
+        "name": "English language",
+        "timestamp": 0
+      },
+      {
+        "name": "Spanish",
+        "timestamp": 0
+      }
+    ],
+    "websites": [
+      {
+        "address": "https://janedoesmith.example.com/"
+      }
+    ],
+    "screen_names": [
+      {
+        "service_name": "GitHub",
+        "names": [
+          {
+            "name": "janedoe-dev",
+            "timestamp": 0
+          }
+        ]
+      },
+      {
+        "service_name": "LinkedIn",
+        "names": [
+          {
+            "name": "janedoesmith",
+            "timestamp": 0
+          }
+        ]
+      }
+    ],
+    "phone_numbers": [
+      {
+        "phone_type": "Mobile",
+        "phone_number": "+15035550123",
+        "verified": true,
+        "creation_time": 0
+      }
+    ],
+    "username": "jane.doe.smith.1985",
+    "registration_timestamp": 1170892800,
+    "profile_uri": "https://www.facebook.com/jane.doe.smith.1985",
+    "intro_bio": {
+      "name": "Software engineer, coffee enthusiast, and amateur astronomer. Oregon born and raised.",
+      "timestamp": 1497881882
+    },
+    "profile_category": "Personal"
+  }
+}

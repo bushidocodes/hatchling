@@ -8,3 +8,6 @@ friends.json
 foo.txt
 *.ttl
 *.json
+
+# Keep synthetic test fixtures
+!tests/fixtures/*.json
