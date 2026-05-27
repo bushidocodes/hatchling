@@ -1,3 +1,8 @@
+// serde's Deserialize derive macro generates non-local `impl` blocks when
+// combined with #[serde(tag)] / #[serde(other)] / #[serde(alias)].
+// This is a known proc-macro expansion artefact, not a real code issue.
+#![allow(non_local_definitions)]
+
 use serde::Deserialize;
 use serde_json::Value;
 use std::io;
