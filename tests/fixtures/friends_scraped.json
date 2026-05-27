@@ -1,0 +1,12 @@
+[
+  { "name": "Alice Nguyen",          "target": "https://www.facebook.com/alice.nguyen.503" },
+  { "name": "Bob Kowalski",          "target": "https://www.facebook.com/bob.kowalski.77" },
+  { "name": "Carmen Reyes-Morales",  "target": "https://www.facebook.com/carmen.reyes.morales" },
+  { "name": "David Okonkwo",         "target": "https://www.facebook.com/david.okonkwo" },
+  { "name": "Elena Petrová",         "target": "https://www.facebook.com/elena.petrova.cz" },
+  { "name": "François Beaumont",     "target": "https://www.facebook.com/francois.beaumont" },
+  { "name": "Gabriela Müller",       "target": "https://www.facebook.com/gabi.mueller.de" },
+  { "name": "Hiroshi Tanaka",        "target": "https://www.facebook.com/hiroshi.tanaka.jp" },
+  { "name": "Ingrid Björnsdóttir",   "target": "https://www.facebook.com/ingrid.bjornsdottir" },
+  { "name": "José María Vázquez",    "target": "https://www.facebook.com/profile.php?id=100012345678" }
+]

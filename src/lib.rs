@@ -29,9 +29,9 @@ pub fn convert_facebook_to_solid(
         profile.set_gender(&my_fb_profile.profile.gender.gender_option);
     }
 
-    if !my_fb_profile.profile.birthday.month > 0
-        && !my_fb_profile.profile.birthday.day > 0
-        && !my_fb_profile.profile.birthday.year > 0
+    if my_fb_profile.profile.birthday.month > 0
+        && my_fb_profile.profile.birthday.day > 0
+        && my_fb_profile.profile.birthday.year > 0
     {
         profile.set_birthday_and_age(
             my_fb_profile.profile.birthday.month.into(),
@@ -96,6 +96,7 @@ pub fn convert_facebook_to_solid(
                     profile.add_alumni_relationship(&name)
                 };
             }
+            EducationExperience::Other => {}
         }
     }
 
