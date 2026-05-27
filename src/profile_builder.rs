@@ -385,7 +385,9 @@ impl Profile {
             &self.graph.create_literal_node(name.to_string()),
         ));
 
-        self.add_account(fb_profile_url, Some(&clean_string(name)));
+        if !fb_profile_url.is_empty() {
+            self.add_account(fb_profile_url, Some(&clean_string(name)));
+        }
 
         self.graph.add_triple(&Triple::new(
             &self.graph.create_uri_node(&Uri::new("#me".to_string())),
