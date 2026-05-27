@@ -348,9 +348,23 @@ fn fix_facebook_encoding(input: &str) -> String {
                 result.push_str(&input[seq_start..i]);
             }
         } else {
-            // Facebook's JSON export is ASCII; all non-ASCII is \uXXXX-escaped.
-            result.push(s[i] as char);
-            i += 1;
+            // Facebook's DYI JSON export is ASCII (all non-ASCII is \uXXXX-escaped),
+            // but browser-scraped JSON from JSON.stringify contains literal UTF-8 bytes.
+            // Handle both: pass ASCII bytes through directly; decode multi-byte sequences.
+            if s[i] < 0x80 {
+                result.push(s[i] as char);
+                i += 1;
+            } else {
+                let seq_len = if s[i] >= 0xF0 { 4 } else if s[i] >= 0xE0 { 3 } else { 2 };
+                let end = (i + seq_len).min(len);
+                if let Ok(s_str) = std::str::from_utf8(&s[i..end]) {
+                    result.push_str(s_str);
+                    i = end;
+                } else {
+                    result.push(s[i] as char);
+                    i += 1;
+                }
+            }
         }
     }
 
