@@ -62,6 +62,33 @@ fn profile_gender_in_output() {
 }
 
 // ---------------------------------------------------------------------------
+// Profile page
+// ---------------------------------------------------------------------------
+
+#[test]
+fn profile_page_in_output() {
+    let ttl = convert_facebook_to_solid(PROFILE, None).unwrap();
+    assert!(ttl.contains("foaf:page"), "foaf:page missing");
+    assert!(
+        ttl.contains("https://www.facebook.com/jane.doe.smith.1985"),
+        "profile URI missing"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Work experience
+// ---------------------------------------------------------------------------
+
+#[test]
+fn work_experience_in_output() {
+    let ttl = convert_facebook_to_solid(PROFILE, None).unwrap();
+    assert!(ttl.contains("Acme Software Inc."), "employer missing");
+    assert!(ttl.contains("Senior Software Engineer"), "job title missing");
+    assert!(ttl.contains("schema:worksFor"), "worksFor predicate missing");
+    assert!(ttl.contains("schema:jobTitle"), "jobTitle predicate missing");
+}
+
+// ---------------------------------------------------------------------------
 // Education
 // ---------------------------------------------------------------------------
 

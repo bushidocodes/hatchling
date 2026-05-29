@@ -341,6 +341,52 @@ impl Profile {
         ));
     }
 
+    pub fn add_work_experience(&mut self, employer: &str, title: &str) {
+        let org = &self
+            .graph
+            .create_blank_node_with_id(clean_string(employer));
+        self.graph.add_triple(&Triple::new(
+            &org,
+            &self.graph.create_uri_node(&Uri::new("a".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/Organization".to_string())),
+        ));
+        self.graph.add_triple(&Triple::new(
+            &org,
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/name".to_string())),
+            &self.graph.create_literal_node(employer.to_string()),
+        ));
+        self.graph.add_triple(&Triple::new(
+            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://schema.org/worksFor".to_string())),
+            &org,
+        ));
+        if !title.is_empty() {
+            self.graph.add_triple(&Triple::new(
+                &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+                &self
+                    .graph
+                    .create_uri_node(&Uri::new("http://schema.org/jobTitle".to_string())),
+                &self.graph.create_literal_node(title.to_string()),
+            ));
+        }
+    }
+
+    pub fn add_profile_page(&mut self, url: &str) {
+        self.graph.add_triple(&Triple::new(
+            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
+            &self
+                .graph
+                .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/page".to_string())),
+            &self.graph.create_uri_node(&Uri::new(url.to_string())),
+        ));
+    }
+
     // username is a string containing the facebook username
     // target is an option containing a
     pub fn add_account(&mut self, username: &str, account_holder_id_override: Option<&str>) {
