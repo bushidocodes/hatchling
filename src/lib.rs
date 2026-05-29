@@ -54,6 +54,25 @@ pub fn convert_facebook_to_solid(
         );
     }
 
+    if !my_fb_profile.profile.profile_uri.is_empty() {
+        profile.add_profile_page(&my_fb_profile.profile.profile_uri);
+    }
+
+    for work in &my_fb_profile.profile.work_experiences {
+        let employer = work
+            .get("employer")
+            .and_then(|e| e.get("name"))
+            .and_then(|n| n.as_str())
+            .unwrap_or("");
+        let title = work
+            .get("title")
+            .and_then(|t| t.as_str())
+            .unwrap_or("");
+        if !employer.is_empty() {
+            profile.add_work_experience(employer, title);
+        }
+    }
+
     for email in my_fb_profile.profile.emails.emails {
         profile.add_email(&email);
     }
