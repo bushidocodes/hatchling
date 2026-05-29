@@ -188,7 +188,7 @@ impl Profile {
                 .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/birthday".to_string())),
             &self
                 .graph
-                .create_literal_node(format!("{}-{}", &month, &day)),
+                .create_literal_node(format!("--{:02}-{:02}", &month, &day)),
         ));
         // Uses ISO 8601 https://en.wikipedia.org/wiki/ISO_8601
         self.graph.add_triple(&Triple::new(
@@ -198,7 +198,7 @@ impl Profile {
                 .create_uri_node(&Uri::new("http://schema.org/birthDate".to_string())),
             &self
                 .graph
-                .create_literal_node(format!("{}-{}-{}", &year, &month, &day)),
+                .create_literal_node(format!("{:04}-{:02}-{:02}", &year, &month, &day)),
         ));
 
         // Calculate age. This seems to be kinda broken.
