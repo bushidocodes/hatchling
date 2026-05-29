@@ -79,6 +79,13 @@ fn profile_page_in_output() {
 // Work experience
 // ---------------------------------------------------------------------------
 
+/// Builds a minimal valid profile JSON with the given work_experiences value
+/// substituted in, so synthetic work-experience tests don't need the full fixture.
+fn profile_with_work(work_experiences_json: &str) -> String {
+    const TEMPLATE: &str = r#"{"profile_v2":{"name":{"full_name":"Test User","first_name":"Test","middle_name":"","last_name":"User"},"emails":{"emails":[],"previous_emails":[],"pending_emails":[],"ad_account_emails":[]},"work_experiences":WORK}}"#;
+    TEMPLATE.replace("WORK", work_experiences_json)
+}
+
 #[test]
 fn work_experience_in_output() {
     let ttl = convert_facebook_to_solid(PROFILE, None).unwrap();
@@ -86,6 +93,70 @@ fn work_experience_in_output() {
     assert!(ttl.contains("Senior Software Engineer"), "job title missing");
     assert!(ttl.contains("schema:worksFor"), "worksFor predicate missing");
     assert!(ttl.contains("schema:jobTitle"), "jobTitle predicate missing");
+}
+
+#[test]
+fn work_experience_employer_and_title_produce_triples() {
+    let json = profile_with_work(
+        r#"[{"employer":{"name":"Globex Corporation"},"title":"Safety Inspector","start_timestamp":0,"end_timestamp":0}]"#,
+    );
+    let ttl = convert_facebook_to_solid(&json, None).unwrap();
+    assert!(ttl.contains("Globex Corporation"));
+    assert!(ttl.contains("Safety Inspector"));
+    assert!(ttl.contains("schema:worksFor"));
+    assert!(ttl.contains("schema:jobTitle"));
+}
+
+#[test]
+fn work_experience_without_title_omits_job_title_triple() {
+    let json = profile_with_work(
+        r#"[{"employer":{"name":"Globex Corporation"},"start_timestamp":0,"end_timestamp":0}]"#,
+    );
+    let ttl = convert_facebook_to_solid(&json, None).unwrap();
+    assert!(ttl.contains("Globex Corporation"));
+    assert!(ttl.contains("schema:worksFor"));
+    assert!(!ttl.contains("schema:jobTitle"));
+}
+
+#[test]
+fn work_experience_absent_omits_work_triples() {
+    let json = profile_with_work("[]");
+    let ttl = convert_facebook_to_solid(&json, None).unwrap();
+    assert!(!ttl.contains("schema:worksFor"));
+    assert!(!ttl.contains("schema:jobTitle"));
+}
+
+#[test]
+fn work_experience_empty_employer_name_omits_all_work_triples() {
+    let json = profile_with_work(
+        r#"[{"employer":{"name":""},"title":"Engineer","start_timestamp":0,"end_timestamp":0}]"#,
+    );
+    let ttl = convert_facebook_to_solid(&json, None).unwrap();
+    assert!(!ttl.contains("schema:worksFor"));
+    assert!(!ttl.contains("schema:jobTitle"));
+}
+
+#[test]
+fn work_experience_missing_employer_key_omits_all_work_triples() {
+    let json = profile_with_work(
+        r#"[{"title":"Engineer","start_timestamp":0,"end_timestamp":0}]"#,
+    );
+    let ttl = convert_facebook_to_solid(&json, None).unwrap();
+    assert!(!ttl.contains("schema:worksFor"));
+    assert!(!ttl.contains("schema:jobTitle"));
+}
+
+#[test]
+fn work_experience_multiple_employers_produce_multiple_triples() {
+    let json = profile_with_work(
+        r#"[{"employer":{"name":"Acme Corp"},"title":"Coyote Wrangler"},{"employer":{"name":"Initech"},"title":"TPS Report Author"}]"#,
+    );
+    let ttl = convert_facebook_to_solid(&json, None).unwrap();
+    assert!(ttl.contains("Acme Corp"));
+    assert!(ttl.contains("Coyote Wrangler"));
+    assert!(ttl.contains("Initech"));
+    assert!(ttl.contains("TPS Report Author"));
+    assert!(ttl.contains("schema:worksFor"));
 }
 
 // ---------------------------------------------------------------------------
