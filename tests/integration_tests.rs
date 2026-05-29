@@ -31,8 +31,8 @@ fn profile_email_in_output() {
 #[test]
 fn profile_birthday_in_output() {
     let ttl = convert_facebook_to_solid(PROFILE, None).unwrap();
-    assert!(ttl.contains("schema:birthDate \"1985-3-14\""), "birthDate missing");
-    assert!(ttl.contains("foaf:birthday \"3-14\""), "foaf birthday missing");
+    assert!(ttl.contains("schema:birthDate \"1985-03-14\""), "birthDate missing");
+    assert!(ttl.contains("foaf:birthday \"--03-14\""), "foaf birthday missing");
 }
 
 #[test]
