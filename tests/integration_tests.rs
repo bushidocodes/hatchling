@@ -17,8 +17,8 @@ fn profile_parses_without_error() {
 fn profile_name_in_output() {
     let ttl = convert_facebook_to_solid(PROFILE, None).unwrap();
     assert!(ttl.contains("Jane Doe-Smith"), "full name missing");
-    assert!(ttl.contains("foaf:firstName \"Jane\""), "first name missing");
-    assert!(ttl.contains("foaf:lastName \"Doe-Smith\""), "last name missing");
+    assert!(ttl.contains("foaf:givenName \"Jane\""), "first name missing");
+    assert!(ttl.contains("foaf:familyName \"Doe-Smith\""), "last name missing");
 }
 
 #[test]

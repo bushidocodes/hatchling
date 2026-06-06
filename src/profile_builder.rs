@@ -256,13 +256,6 @@ impl Profile {
     pub fn set_last_name(&mut self, lastname: &str) {
         self.graph.add_triple(&Triple::new(
             &self.graph.create_uri_node(&Uri::new("#me".to_string())),
-            &self
-                .graph
-                .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/lastName".to_string())),
-            &self.graph.create_literal_node(lastname.to_string()),
-        ));
-        self.graph.add_triple(&Triple::new(
-            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
             &self.graph.create_uri_node(&Uri::new(
                 "http://xmlns.com/foaf/0.1/familyName".to_string(),
             )),
@@ -278,13 +271,6 @@ impl Profile {
     }
 
     pub fn set_first_name(&mut self, firstname: &str) {
-        self.graph.add_triple(&Triple::new(
-            &self.graph.create_uri_node(&Uri::new("#me".to_string())),
-            &self
-                .graph
-                .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/firstName".to_string())),
-            &self.graph.create_literal_node(firstname.to_string()),
-        ));
         self.graph.add_triple(&Triple::new(
             &self.graph.create_uri_node(&Uri::new("#me".to_string())),
             &self
