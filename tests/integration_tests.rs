@@ -14,6 +14,13 @@ fn profile_parses_without_error() {
 }
 
 #[test]
+fn no_unused_namespace_prefixes_in_output() {
+    let ttl = convert_facebook_to_solid(PROFILE, None).unwrap();
+    assert!(!ttl.contains("@prefix vcard:"), "vcard namespace must not appear (unused)");
+    assert!(!ttl.contains("@prefix resource:"), "resource namespace must not appear (unused)");
+}
+
+#[test]
 fn profile_name_in_output() {
     let ttl = convert_facebook_to_solid(PROFILE, None).unwrap();
     assert!(ttl.contains("Jane Doe-Smith"), "full name missing");
