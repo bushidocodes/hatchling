@@ -181,15 +181,6 @@ impl Profile {
             "foaf".to_string(),
             Uri::new("http://xmlns.com/foaf/0.1/".to_string()),
         ));
-        new_profile.graph.add_namespace(&Namespace::new(
-            "vcard".to_string(),
-            Uri::new("http://www.w3.org/2006/vcard/ns".to_string()),
-        ));
-        new_profile.graph.add_namespace(&Namespace::new(
-            "resource".to_string(),
-            Uri::new("http://dbpedia.org/resource/".to_string()),
-        ));
-
         let foaf_maker = new_profile
             .graph
             .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/maker".to_string()));
