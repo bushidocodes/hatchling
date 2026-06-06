@@ -134,6 +134,6 @@ pub fn convert_facebook_to_solid(
             profile.add_facebook_friend(&friend_raw.name, &friend_raw.target)
         }
     };
-    let profile_string = profile.write_to_string()?;
+    let profile_string = profile.write_to_string();
     Ok(profile_string)
 }

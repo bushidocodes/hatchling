@@ -1,26 +1,171 @@
-use rdf::graph::Graph;
-use rdf::namespace::Namespace;
-use rdf::triple::Triple;
-use rdf::uri::Uri;
-use rdf::writer::rdf_writer::RdfWriter;
-use rdf::writer::turtle_writer::TurtleWriter;
-
 pub fn clean_string(src: &str) -> String {
-    src.replace(" ", "_")
-        .replace(".", "_")
-        .replace("-", "_")
-        .replace(",", "")
+    src.replace(' ', "_")
+        .replace('.', "_")
+        .replace('-', "_")
+        .replace(',', "")
 }
 
+// ---------------------------------------------------------------------------
+// Minimal RDF graph + Turtle serializer — replaces the unmaintained `rdf` crate.
+// oxrdf/oxttl require absolute IRIs and cannot represent the relative-IRI
+// semantics that Solid profile documents require (e.g. <>, <#me>, <./>, <#>).
+// ---------------------------------------------------------------------------
+
+struct Uri(String);
+
+impl Uri {
+    fn new(s: String) -> Self {
+        Uri(s)
+    }
+}
+
+#[derive(Clone)]
+struct Namespace {
+    prefix: String,
+    iri: String,
+}
+
+impl Namespace {
+    fn new(prefix: String, uri: Uri) -> Self {
+        Namespace { prefix, iri: uri.0 }
+    }
+}
+
+#[derive(Clone)]
+enum NodeKind {
+    Uri,
+    Blank,
+    Literal,
+}
+
+#[derive(Clone)]
+struct Node {
+    kind: NodeKind,
+    value: String,
+}
+
+struct Triple {
+    subject: Node,
+    predicate: Node,
+    object: Node,
+}
+
+impl Triple {
+    fn new(s: &Node, p: &Node, o: &Node) -> Self {
+        Triple {
+            subject: s.clone(),
+            predicate: p.clone(),
+            object: o.clone(),
+        }
+    }
+}
+
+struct Graph {
+    triples: Vec<Triple>,
+    namespaces: Vec<Namespace>,
+}
+
+impl Graph {
+    fn new() -> Self {
+        Graph {
+            triples: Vec::new(),
+            namespaces: Vec::new(),
+        }
+    }
+
+    fn add_namespace(&mut self, ns: &Namespace) {
+        self.namespaces.push(ns.clone());
+    }
+
+    fn create_uri_node(&self, uri: &Uri) -> Node {
+        Node { kind: NodeKind::Uri, value: uri.0.clone() }
+    }
+
+    fn create_literal_node(&self, s: String) -> Node {
+        Node { kind: NodeKind::Literal, value: s }
+    }
+
+    fn create_blank_node_with_id(&self, id: String) -> Node {
+        Node { kind: NodeKind::Blank, value: id }
+    }
+
+    fn add_triple(&mut self, t: &Triple) {
+        self.triples.push(Triple {
+            subject: t.subject.clone(),
+            predicate: t.predicate.clone(),
+            object: t.object.clone(),
+        });
+    }
+
+    fn format_node(&self, node: &Node) -> String {
+        match node.kind {
+            NodeKind::Uri => {
+                let iri = &node.value;
+                // "a" is the Turtle shorthand for rdf:type
+                if iri == "a" {
+                    return "a".to_string();
+                }
+                // Try namespace prefix compression
+                for ns in &self.namespaces {
+                    if !ns.iri.is_empty() && iri.starts_with(ns.iri.as_str()) {
+                        let local = &iri[ns.iri.len()..];
+                        return if ns.prefix.is_empty() {
+                            format!(":{}", local)
+                        } else {
+                            format!("{}:{}", ns.prefix, local)
+                        };
+                    }
+                }
+                // Fall back to angle-bracket form; empty IRI means <> (this document)
+                if iri.is_empty() {
+                    "<>".to_string()
+                } else {
+                    format!("<{}>", iri)
+                }
+            }
+            NodeKind::Blank => format!("_:{}", node.value),
+            NodeKind::Literal => {
+                let escaped = node
+                    .value
+                    .replace('\\', "\\\\")
+                    .replace('"', "\\\"")
+                    .replace('\n', "\\n")
+                    .replace('\r', "\\r");
+                format!("\"{}\"", escaped)
+            }
+        }
+    }
+
+    fn serialize_turtle(&self) -> String {
+        let mut out = String::new();
+        for ns in &self.namespaces {
+            out.push_str(&format!("@prefix {}: <{}> .\n", ns.prefix, ns.iri));
+        }
+        out.push('\n');
+        for t in &self.triples {
+            out.push_str(&format!(
+                "{} {} {} .\n",
+                self.format_node(&t.subject),
+                self.format_node(&t.predicate),
+                self.format_node(&t.object),
+            ));
+        }
+        out
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Profile builder
+// ---------------------------------------------------------------------------
+
 pub struct Profile {
-    pub graph: rdf::graph::Graph,
+    graph: Graph,
 }
 
 impl Profile {
     pub fn new() -> Profile {
-        let mut new_profile = Profile {
-            graph: Graph::new(None),
-        };
+        let mut new_profile = Profile { graph: Graph::new() };
+
         new_profile
             .graph
             .add_namespace(&Namespace::new("".to_string(), Uri::new("#".to_string())));
@@ -63,15 +208,14 @@ impl Profile {
             .graph
             .create_uri_node(&Uri::new("http://schema.org/Person".to_string()));
 
-        //  The <> (the empty URI) means "this document".
         let solid_card = new_profile.graph.create_uri_node(&Uri::new("".to_string()));
-
         let me = new_profile
             .graph
             .create_uri_node(&Uri::new("#me".to_string()));
         let is_a = new_profile
             .graph
             .create_uri_node(&Uri::new("a".to_string()));
+
         new_profile.graph.add_triple(&Triple::new(
             &solid_card,
             &is_a,
@@ -92,7 +236,6 @@ impl Profile {
         new_profile
     }
 
-    // Note, this would set multiple conflicting triples if executed multiple times
     pub fn set_name(&mut self, name: &str) {
         self.graph.add_triple(&Triple::new(
             &self.graph.create_uri_node(&Uri::new("#me".to_string())),
@@ -110,7 +253,6 @@ impl Profile {
         ));
     }
 
-    // Note, this would set multiple conflicting triples if executed multiple times
     pub fn set_last_name(&mut self, lastname: &str) {
         self.graph.add_triple(&Triple::new(
             &self.graph.create_uri_node(&Uri::new("#me".to_string())),
@@ -135,7 +277,6 @@ impl Profile {
         ));
     }
 
-    // Note, this would set multiple conflicting triples if executed multiple times
     pub fn set_first_name(&mut self, firstname: &str) {
         self.graph.add_triple(&Triple::new(
             &self.graph.create_uri_node(&Uri::new("#me".to_string())),
@@ -160,7 +301,6 @@ impl Profile {
         ));
     }
 
-    // Note, this would set multiple conflicting triples if executed multiple times
     pub fn set_gender(&mut self, gender: &str) {
         self.graph.add_triple(&Triple::new(
             &self.graph.create_uri_node(&Uri::new("#me".to_string())),
@@ -178,7 +318,6 @@ impl Profile {
         ));
     }
 
-    // Note, this would set multiple conflicting triples if executed multiple times
     pub fn set_birthday_and_age(&mut self, month: u32, day: u32, year: i32) {
         let me = self.graph.create_uri_node(&Uri::new("#me".to_string()));
         self.graph.add_triple(&Triple::new(
@@ -190,7 +329,6 @@ impl Profile {
                 .graph
                 .create_literal_node(format!("--{:02}-{:02}", &month, &day)),
         ));
-        // Uses ISO 8601 https://en.wikipedia.org/wiki/ISO_8601
         self.graph.add_triple(&Triple::new(
             &me,
             &self
@@ -200,17 +338,6 @@ impl Profile {
                 .graph
                 .create_literal_node(format!("{:04}-{:02}-{:02}", &year, &month, &day)),
         ));
-
-        // Calculate age. This seems to be kinda broken.
-        // let utc_birthday = Utc.ymd(year, month, day).and_hms(0, 0, 0);
-        // let age = Utc::now().signed_duration_since(utc_birthday).num_weeks() / 52;
-        // self.graph.add_triple(&Triple::new(
-        //     &me,
-        //     &self
-        //         .graph
-        //         .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/age".to_string())),
-        //     &self.graph.create_literal_node(age.to_string()),
-        // ));
     }
 
     pub fn add_phone_number(&mut self, phonenum: &str) {
@@ -387,8 +514,6 @@ impl Profile {
         ));
     }
 
-    // username is a string containing the facebook username
-    // target is an option containing a
     pub fn add_account(&mut self, username: &str, account_holder_id_override: Option<&str>) {
         let mut account_holder_id = "me";
         if let Some(id) = account_holder_id_override {
@@ -396,7 +521,6 @@ impl Profile {
         }
         let account_holder_id_pragma = format!("#{}", account_holder_id);
 
-        // Associate with my foaf profile
         self.graph.add_triple(&Triple::new(
             &self
                 .graph
@@ -441,8 +565,8 @@ impl Profile {
             &friend,
         ));
     }
-    pub fn write_to_string(&mut self) -> Result<String, rdf::error::Error> {
-        let writer = TurtleWriter::new(self.graph.namespaces());
-        writer.write_to_string(&self.graph)
+
+    pub fn write_to_string(&mut self) -> String {
+        self.graph.serialize_turtle()
     }
 }
