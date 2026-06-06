@@ -528,7 +528,7 @@ impl Profile {
             &self
                 .graph
                 .create_uri_node(&Uri::new("http://xmlns.com/foaf/0.1/account".to_string())),
-            &self.graph.create_literal_node(username.to_string()),
+            &self.graph.create_uri_node(&Uri::new(username.to_string())),
         ));
     }
 

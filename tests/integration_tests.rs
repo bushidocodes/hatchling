@@ -51,7 +51,15 @@ fn profile_locations_in_output() {
 #[test]
 fn profile_facebook_account_in_output() {
     let ttl = convert_facebook_to_solid(PROFILE, None).unwrap();
-    assert!(ttl.contains("jane.doe.smith.1985"), "Facebook username missing");
+    // Account URL must be a URI node (<...>), not a literal ("...")
+    assert!(
+        ttl.contains("<https://www.facebook.com/jane.doe.smith.1985>"),
+        "Facebook account must be a URI node"
+    );
+    assert!(
+        !ttl.contains("\"https://www.facebook.com/jane.doe.smith.1985\""),
+        "Facebook account must not be a literal"
+    );
 }
 
 #[test]
