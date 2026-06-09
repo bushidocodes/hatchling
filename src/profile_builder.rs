@@ -1,8 +1,21 @@
 pub fn clean_string(src: &str) -> String {
-    src.replace(' ', "_")
+    // Turtle blank-node identifiers (and local names used after '#') must match
+    // the PN_CHARS production.  Characters that are not allowed include
+    // apostrophes, ampersands, quotes, parentheses, slashes, colons, etc.
+    // Strategy:
+    //   • spaces / dots / dashes / commas → replaced with '_' or removed
+    //   • apostrophes (') → removed  (e.g. "O'Brien" → "OBrien")
+    //   • ampersands (&)  → replaced with "_and_"
+    //   • any remaining character that is not alphanumeric or '_' → removed
+    src.replace('&', "_and_")
+        .replace(' ', "_")
         .replace('.', "_")
         .replace('-', "_")
         .replace(',', "")
+        .replace('\'', "")
+        .chars()
+        .filter(|c| c.is_alphanumeric() || *c == '_')
+        .collect()
 }
 
 // ---------------------------------------------------------------------------
@@ -545,5 +558,66 @@ impl Profile {
 
     pub fn write_to_string(&mut self) -> String {
         self.graph.serialize_turtle()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::clean_string;
+
+    #[test]
+    fn clean_string_replaces_spaces_with_underscores() {
+        assert_eq!(clean_string("New York"), "New_York");
+    }
+
+    #[test]
+    fn clean_string_removes_apostrophes() {
+        assert_eq!(clean_string("O'Brien"), "OBrien");
+        assert_eq!(clean_string("Macy's"), "Macys");
+    }
+
+    #[test]
+    fn clean_string_replaces_ampersands_with_and() {
+        assert_eq!(clean_string("Salt & Pepper"), "Salt__and__Pepper");
+        assert_eq!(clean_string("R&D"), "R_and_D");
+    }
+
+    #[test]
+    fn clean_string_removes_commas() {
+        assert_eq!(clean_string("Portland, Oregon"), "Portland_Oregon");
+    }
+
+    #[test]
+    fn clean_string_replaces_dots_and_dashes_with_underscores() {
+        assert_eq!(clean_string("St. Louis"), "St__Louis");
+        assert_eq!(clean_string("Foo-Bar"), "Foo_Bar");
+    }
+
+    #[test]
+    fn clean_string_removes_other_special_characters() {
+        // Parentheses, slashes, colons, etc. must not appear in identifiers.
+        // The space before '(' becomes '_'; the parens themselves are dropped.
+        assert_eq!(clean_string("Foo (Bar)"), "Foo_Bar");
+        assert_eq!(clean_string("A/B"), "AB");
+        // The colon is dropped; the space becomes '_'.
+        assert_eq!(clean_string("Hello: World"), "Hello_World");
+    }
+
+    #[test]
+    fn clean_string_produces_only_valid_identifier_chars() {
+        let inputs = [
+            "O'Brien & Associates",
+            "Procter & Gamble",
+            "AT&T",
+            "mom's kitchen",
+            "São Paulo",
+        ];
+        for input in &inputs {
+            let result = clean_string(input);
+            assert!(
+                result.chars().all(|c| c.is_alphanumeric() || c == '_'),
+                "clean_string({input:?}) produced invalid identifier char(s): {result:?}"
+            );
+        }
     }
 }
